@@ -1,4 +1,5 @@
 import socket
+import ssl
 from langchain.llms import CTransformers
 
 # Define the server's address and port
@@ -25,6 +26,10 @@ def handle_client(connection):
         connection.close()
 
 def start_server():
+    ontext = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind((HOST, PORT))
         server_socket.listen()
@@ -33,7 +38,9 @@ def start_server():
         while True:
             conn, addr = server_socket.accept()
             print(f"Connected by {addr}")
-            handle_client(conn)
+            ssl_conn = context.wrap_socket(conn, server_side=True)
+            handle_client(ssl_conn)
+
 
 if __name__ == "__main__":
     start_server()
